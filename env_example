@@ -1,0 +1,8 @@
+# Hugging Face Token (required for Llama 3 access)
+# Get your token from: https://huggingface.co/settings/tokens
+HF_TOKEN=your_huggingface_token_here
+
+# Weights & Biases API Key (optional, for experiment tracking)
+# Get your key from: https://wandb.ai/settings
+WANDB_API_KEY=your_wandb_key_here
+
