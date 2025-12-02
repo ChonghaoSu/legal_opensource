@@ -57,7 +57,10 @@ class CitationGenerator:
         """Constructs the prompt and generates the JSON output."""
         context_text = "\n\n".join([f"Source ({c['source']}): {c['content']}" for c in context_chunks])
         
-        prompt = f"""### Instruction:
+        # --- CORRECT LLAMA-3 FORMAT ---
+        # This specific structure triggers the model's instruction-following capabilities
+        prompt = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
 You are a legal evidence assistant. Analyze the provided context documents and answer the user's question.
 Output strictly in JSON format with the following schema:
 {{
@@ -69,15 +72,13 @@ Output strictly in JSON format with the following schema:
     }}
   ]
 }}
-If the context does not contain the answer, return: {{ "claim": "Insufficient Context", "evidence": [] }}
+If the context does not contain the answer, return: {{ "claim": "Insufficient Context", "evidence": [] }}<|eot_id|><|start_header_id|>user<|end_header_id|>
 
-### Context:
+Context:
 {context_text}
 
-### Question:
-{query}
-
-### Response:
+Question:
+{query}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
 """
         
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
@@ -92,8 +93,9 @@ If the context does not contain the answer, return: {{ "claim": "Insufficient Co
         
         response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         
-        if "### Response:" in response:
-            response_clean = response.split("### Response:")[-1].strip()
+        # Clean up Llama-3 specific generation artifacts
+        if "<|start_header_id|>assistant<|end_header_id|>" in response:
+            response_clean = response.split("<|start_header_id|>assistant<|end_header_id|>")[-1].strip()
         else:
             response_clean = response
             
