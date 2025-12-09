@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Dec  2 00:55:28 2025
-
-@author: rtvid
-"""
-
 import os
 import torch
 from typing import List, Dict
@@ -55,23 +48,31 @@ class CitationGenerator:
 
     def generate_response(self, query: str, context_chunks: List[Dict]) -> str:
         """Constructs the prompt and generates the JSON output."""
+        
+        # --- 1. GUARDRAIL: Handle Empty Context ---
+        if not context_chunks:
+            print("(!) DEBUG: No context chunks provided to generator.")
+            return '{ "claim": "Insufficient Context", "evidence": [] }'
+
         context_text = "\n\n".join([f"Source ({c['source']}): {c['content']}" for c in context_chunks])
         
-        # --- CORRECT LLAMA-3 FORMAT ---
-        # This specific structure triggers the model's instruction-following capabilities
+        # --- 2. DEBUGGING: Print what the model is reading ---
+        print("\n--- [DEBUG] RETRIEVED CONTEXT ---")
+        print(context_text[:500] + "..." if len(context_text) > 500 else context_text)
+        print("---------------------------------\n")
+
+        # --- 3. PROMPT ENGINEERING: One-Shot Example ---
+        # We give the model an example interaction so it knows exactly what JSON looks like.
         prompt = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
 
 You are a legal evidence assistant. Analyze the provided context documents and answer the user's question.
-Output strictly in JSON format with the following schema:
-{{
-  "claim": "The answer to the question",
-  "evidence": [
-    {{
-      "text": "Exact quote from text",
-      "source": "Source document name"
-    }}
-  ]
-}}
+Output strictly in JSON format. Do not output conversational text.
+
+Example Format:
+Question: "What is the termination notice period?"
+Context: "Source (Contract.pdf): Either party may terminate this agreement with 30 days prior written notice."
+Output: {{ "claim": "30 days", "evidence": [ {{ "text": "terminate this agreement with 30 days prior written notice", "source": "Contract.pdf" }} ] }}
+
 If the context does not contain the answer, return: {{ "claim": "Insufficient Context", "evidence": [] }}<|eot_id|><|start_header_id|>user<|end_header_id|>
 
 Context:
