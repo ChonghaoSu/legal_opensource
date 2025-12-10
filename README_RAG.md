@@ -1,11 +1,17 @@
-# Legal RAG: Retrieval-Augmented Generation Pipeline
+# Legal RAG Analysis System
 
-This module implements a robust **Retrieval-Augmented Generation (RAG)** system designed specifically for legal document analysis. It is optimized for **Google Colab (T4 GPU)** environments, featuring a "fail-safe" data ingestion engine and aggressive memory management to prevent "Out of Memory" (OOM) errors on free-tier resources.
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ChonghaoSu/legal_opensource/blob/main/legal_rag.ipynb)
+
+> **Note:** Click the badge above to launch the interactive RAG pipeline directly in your browser.
+
+## 📋 Project Overview
+
+This repository contains a robust **Retrieval-Augmented Generation (RAG)** system designed specifically for legal document analysis. It is optimized for **Google Colab (T4 GPU)** environments, featuring a "fail-safe" data ingestion engine and aggressive memory management to prevent "Out of Memory" (OOM) errors on free-tier resources.
 
 ## 🚀 Key Features
 
 * **Fail-Safe Ingestion:** Automatically detects if user documents are missing and generates synthetic legal contracts (NDAs, MSAs) for immediate testing and demos.
-* **Transient Memory Management:** Implements a "Load-and-Release" architecture where the LLM (Qwen 2.5) is only loaded into VRAM during generation and immediately flushed afterwards.
+* **Transient Memory Management:** Implements a "Load-and-Release" architecture where the LLM (Qwen 2.5 or Llama 3) is only loaded into VRAM during generation and immediately flushed afterwards.
 * **Hybrid Document Support:** Native support for ingesting both `.pdf` and `.txt` files.
 * **Legal-Specific Chunking:** Uses recursive splitting with overlap to preserve the context of long legal clauses (e.g., ensuring "Section 4.1" stays with its paragraph).
 * **Local Vector Store:** Uses ChromaDB locally, requiring no external API keys for storage.
@@ -18,31 +24,16 @@ This module implements a robust **Retrieval-Augmented Generation (RAG)** system 
 
 ## ⚙️ Setup & Installation
 
-### 1. Environment Setup
-Run the "Master Setup Cell" at the start of your notebook. This handles:
-* Mounting Google Drive (for model persistence).
-* Installing dependencies (`langchain`, `chromadb`, `transformers`, `unstructured`).
-* **Interactive Authentication:** Securely logs into Hugging Face to access gated models.
+### Option 1: One-Click Launch (Recommended)
+Simply click the **Open in Colab** badge at the top of this file. The notebook `legal_rag.ipynb` comes pre-configured with:
+* **Automatic Dependency Installation:** Installs `langchain`, `chromadb`, and `transformers` on launch.
+* **Fail-Safe Data:** Automatically generates synthetic contracts if no real PDFs are uploaded.
+* **GPU Optimization:** Auto-configures the T4 GPU environment.
 
-### 2. Document Ingestion
-You have two options for data:
+### Option 2: Manual Clone
+If you prefer to run the scripts locally or on a different server:
 
-* **Option A (Real Data):** Drag and drop your legal PDFs into the `rag_documents/` folder in the Colab sidebar.
-* **Option B (Test Mode):** Leave the folder empty. The system will auto-generate `synthetic_nda.txt` and `synthetic_msa.txt` to ensure the pipeline never crashes during demos.
-
-## 🖥️ Usage Guide
-
-### Step 1: Build the Knowledge Base
-Run the ingestion cell to process documents. The system logic:
-1.  **Load:** Scans `rag_documents/` for files.
-2.  **Split:** Chunks text into 1000-character segments (200-char overlap).
-3.  **Embed:** Uses `sentence-transformers/all-MiniLM-L6-v2` to create vector embeddings.
-4.  **Index:** Stores vectors in a local `ChromaDB` instance.
-
-### Step 2: Query the System
-Use the transient bot function to save GPU memory:
-
-```python
-# This loads the model, generates an answer, and immediately clears VRAM
-answer = ask_lawyer_bot_transient("What are the termination conditions?")
-print(answer)
+```bash
+git clone [https://github.com/ChonghaoSu/legal_opensource.git](https://github.com/ChonghaoSu/legal_opensource.git)
+cd legal_opensource
+pip install -r requirements.txt
